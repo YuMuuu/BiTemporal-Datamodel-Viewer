@@ -1,6 +1,6 @@
 module.exports = {
   stories: [
-    '../app/**/*.stories.@(js|jsx)'
+    '../app/**/*.stories.@(js|jsx|ts|tsx)'
   ],
   addons: [
     '@storybook/addon-essentials',
@@ -13,17 +13,20 @@ module.exports = {
     autodocs: 'tag',
   },
   webpackFinal: async (config) => {
-    // Transpile JSX in .stories.jsx under app/
     config.module.rules.push({
-      test: /\.jsx?$/,
+      test: /\.(ts|tsx|js|jsx)$/,
       exclude: /node_modules/,
       use: {
         loader: require.resolve('babel-loader'),
         options: {
-          presets: [require.resolve('@babel/preset-react')],
+          presets: [
+            require.resolve('@babel/preset-react'),
+            require.resolve('@babel/preset-typescript'),
+          ],
         },
       },
     });
+    config.resolve.extensions.push('.ts', '.tsx');
     return config;
   },
 };

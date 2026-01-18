@@ -1,23 +1,33 @@
 "use client"
 import React, { useMemo } from 'react'
-import { extents } from '../lib/model.js'
+import { extents, Version } from '../lib/model'
 
 const PADDING = { left: 60, right: 30, top: 30, bottom: 50 }
 
-export function Canvas({ versions, options }){
+export interface CanvasOptions {
+  asOfTx?: number
+  asOfValid?: number
+  orientationUp?: boolean
+  showGrid?: boolean
+  showHistorical?: boolean
+  gridMaxTx?: number
+  gridMaxValid?: number
+}
+
+export function Canvas({ versions, options }: { versions: Version[]; options: CanvasOptions }){
   const width = 1000, height = 800
   const { tmin, tmax, vmin, vmax } = useMemo(()=>{
     const ex = extents(versions)
-    const txMax = Number.isFinite(options?.gridMaxTx) ? Math.max(1, options.gridMaxTx) : ex.tmax
-    const vMax = Number.isFinite(options?.gridMaxValid) ? Math.max(1, options.gridMaxValid) : ex.vmax
+    const txMax = Number.isFinite(options?.gridMaxTx) ? Math.max(1, options!.gridMaxTx as number) : ex.tmax
+    const vMax = Number.isFinite(options?.gridMaxValid) ? Math.max(1, options!.gridMaxValid as number) : ex.vmax
     return { tmin: 0, tmax: txMax, vmin: 0, vmax: vMax }
   }, [versions, options?.gridMaxTx, options?.gridMaxValid])
   const tRange = Math.max(1, tmax - tmin)
   const vRange = Math.max(1, vmax - vmin)
   const innerW = width - PADDING.left - PADDING.right
   const innerH = height - PADDING.top - PADDING.bottom
-  const xOf = (t) => PADDING.left + ((t - tmin) / tRange) * innerW
-  const yOf = (v) => options?.orientationUp
+  const xOf = (t: number) => PADDING.left + ((t - tmin) / tRange) * innerW
+  const yOf = (v: number) => options?.orientationUp
     ? PADDING.top + ((vmax - v) / vRange) * innerH
     : PADDING.top + ((v - vmin) / vRange) * innerH
 
@@ -69,30 +79,44 @@ export function Canvas({ versions, options }){
         const w = Math.abs(x1 - x0)
         const h = Math.abs(y1 - y0)
         const color = colorForValue(r.value)
-        const asOf = typeof options?.asOfTx === 'number' ? options.asOfTx : undefined
-        const active = asOf == null ? true : (r.ss <= asOf && asOf < (r._sysOpen ? Number.POSITIVE_INFINITY : r.se))
+        const asOfSys = typeof options?.asOfTx === 'number' ? options.asOfTx : undefined
+        const asOfVal = typeof options?.asOfValid === 'number' ? options.asOfValid : undefined
+        const activeSys = asOfSys == null ? true : (r.ss <= asOfSys && asOfSys < (r._sysOpen ? Number.POSITIVE_INFINITY : r.se))
+        const activeVal = asOfVal == null ? true : (r.vs <= asOfVal && asOfVal < (r._validOpen ? Number.POSITIVE_INFINITY : r.ve))
+        const active = activeSys && activeVal
         const show = options?.showHistorical || active
+        const opacityVal = show ? 1 : 0.15
+        const label = r.value ?? ''
+        const maxChars = Math.max(1, Math.floor((w - 8) / 7))
+        const textStr = label.length > maxChars ? (label.slice(0, Math.max(1, maxChars - 1)) + '…') : label
         return (
-          <rect key={idx} x={x} y={y} width={Math.max(0,w)} height={Math.max(0,h)} rx="2" ry="2"
-            fill={active ? color : 'url(#hatch)'} stroke={color} strokeWidth="1.5" opacity={show ? 1 : 0.15}>
-            <title>{`value=${r.value ?? '∅'}\nvalid=[${r.vs}, ${r._validOpen ? '∞' : r.ve})\nsystem=[${r.ss}, ${r._sysOpen ? '∞' : r.se})`}</title>
-          </rect>
+          <g key={idx} opacity={opacityVal}>
+            <rect x={x} y={y} width={Math.max(0,w)} height={Math.max(0,h)} rx="2" ry="2"
+              fill={active ? color : 'url(#hatch)'} stroke={color} strokeWidth="1.5">
+              <title>{`value=${r.value ?? '∅'}\nvalid=[${r.vs}, ${r._validOpen ? '∞' : r.ve})\nsystem=[${r.ss}, ${r._sysOpen ? '∞' : r.se})`}</title>
+            </rect>
+            {(w > 36 && h > 18 && label) && (
+              <text x={x + w / 2} y={y + h / 2} textAnchor="middle" dominantBaseline="middle" fill="#0b0f14" fontSize={12} style={{pointerEvents:'none'}}>
+                {textStr}
+              </text>
+            )}
+          </g>
         )
       })}
     </svg>
   )
 }
 
-function gridLines(min, max, stepRaw){
+function gridLines(min: number, max: number, stepRaw: number){
   const step = Math.max(1, Math.floor(stepRaw || 1))
   const start = Math.ceil(min / step) * step
-  const lines = []
+  const lines: number[] = []
   for (let t = start; t <= max; t += step) lines.push(t)
-  if (min % step === 0 && !lines.includes(min)) lines.unshift(min) // include boundary if aligned
+  if (min % step === 0 && !lines.includes(min)) lines.unshift(min)
   return lines
 }
 
-function colorForValue(value){
+function colorForValue(value?: string){
   if (value == null) return '#8892a0'
   const palette = ['#6ee7b7', '#93c5fd', '#fca5a5', '#fcd34d', '#c4b5fd', '#f9a8d4', '#fdba74']
   const s = String(value)

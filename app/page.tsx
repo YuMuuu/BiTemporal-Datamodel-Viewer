@@ -1,4 +1,4 @@
-import AppUI from './components/AppUI.jsx'
+import AppUI from './components/AppUI'
 
 export default function Page(){
   return <AppUI />
