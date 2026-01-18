@@ -1,0 +1,25 @@
+{
+  "name": "bitemporal-datemodel-viewer",
+  "private": true,
+  "version": "0.2.0",
+  "scripts": {
+    "dev": "next dev -p 5173",
+    "build": "next build",
+    "start": "next start -p 5173",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-react": "^7.26.3",
+    "babel-loader": "^9.2.1",
+    "@storybook/addon-essentials": "^8.6.15",
+    "@storybook/react-webpack5": "^8.6.15",
+    "storybook": "^8.6.15"
+  }
+}

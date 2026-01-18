@@ -1,0 +1,72 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #121821;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #3fb950;
+  --danger: #ff6b6b;
+  --grid: #2b3645;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  color: var(--text);
+  background: radial-gradient(1200px 600px at 10% -10%, #16202d, var(--bg));
+  font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, Helvetica, Arial;
+}
+
+.app-header, .app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem 1rem;
+  background: rgba(18, 24, 33, .9);
+  border-bottom: 1px solid #1f2937;
+}
+.app-footer {
+  border-top: 1px solid #1f2937;
+  border-bottom: none;
+  opacity: .8;
+}
+.app-header h1 { font-size: 18px; margin: 0; }
+.header-actions { display: flex; gap: .75rem; align-items: center; }
+button, input, select {
+  background: #0f1520;
+  color: var(--text);
+  border: 1px solid #243043;
+  border-radius: 6px;
+  padding: .35rem .6rem;
+}
+button:hover { border-color: #3a4a66; cursor: pointer; }
+
+.app-main { display: grid; grid-template-columns: 1fr 320px; gap: 1rem; padding: 1rem; }
+.canvas-panel { position: relative; background: var(--panel); border: 1px solid #1f2937; border-radius: 8px; overflow: hidden; }
+.controls-panel { background: var(--panel); border: 1px solid #1f2937; border-radius: 8px; padding: .75rem; }
+.controls-panel h2 { margin: 0 0 .5rem; font-size: 16px; }
+
+.axes-labels .label-y {
+  position: absolute; left: 6px; top: 6px; writing-mode: vertical-rl; transform: rotate(180deg);
+  color: var(--muted); font-size: 12px; opacity: .9;
+}
+.axes-labels .label-x {
+  position: absolute; right: 8px; bottom: 8px; color: var(--muted); font-size: 12px; opacity: .9;
+}
+
+svg { width: 100%; height: 100%; display: block; background: linear-gradient(180deg, rgba(255,255,255,.02), transparent); }
+
+.ops-list { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .25rem; }
+.ops-list li { list-style-position: outside; display: flex; align-items: center; gap: .5rem; }
+.ops-list li.inactive { opacity: .35; }
+.ops-list li .badge { display: inline-block; width: 1.2rem; height: 1.2rem; border-radius: 50%; background: #213047; border: 1px solid #2d415c; text-align: center; font-size: 11px; line-height: 1.2rem; }
+.ops-list li .meta { color: var(--muted); font-size: 12px; }
+
+.op-form summary, .view-options summary { cursor: pointer; margin-top: .75rem; }
+.op-form form .row { display: flex; gap: .5rem; margin: .4rem 0; }
+.op-form label { display: flex; flex-direction: column; gap: .25rem; font-size: 12px; }
+
+.asof { display: inline-flex; gap: .5rem; align-items: center; }
+
+.hint { fill: var(--muted); font-size: 12px; }
