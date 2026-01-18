@@ -1,6 +1,13 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { computeVersions, normalizeForDisplay, Operation } from "../lib/model";
+import {
+  SelectionSpec,
+  selectVersions,
+  AggregationSpec,
+  aggregateByTime,
+  ValueSpec,
+} from "../lib/transform";
 import { Canvas } from "./Canvas";
 
 function useOpsState(initial: Operation[] = []) {
@@ -69,6 +76,30 @@ export default function AppUI({
   const intervalTip =
     "区間は半開区間 [start, end) を用います。∞ は開いた期間を表します。valid: [FROM_Z, THRU_Z), system: [IN_Z, OUT_Z)。";
 
+  // Transform: Selection & Aggregation (Phase 1)
+  const [selectionEnabled, setSelectionEnabled] = useState<boolean>(false);
+  const [selection, setSelection] = useState<SelectionSpec>({
+    valid: { mode: "overlap", clip: true },
+    system: undefined,
+    value: undefined,
+  });
+  const selectedVersions = useMemo(
+    () => (selectionEnabled ? selectVersions(versions, selection) : versions),
+    [versions, selectionEnabled, selection],
+  );
+
+  const [aggEnabled, setAggEnabled] = useState<boolean>(false);
+  const [agg, setAgg] = useState<AggregationSpec>({
+    axis: "valid",
+    binWidth: 2,
+    align: "zero",
+    func: "last",
+  });
+  const aggregated = useMemo(
+    () => (aggEnabled ? aggregateByTime(selectedVersions, agg) : []),
+    [selectedVersions, aggEnabled, agg],
+  );
+
   return (
     <div>
       <header className="app-header">
@@ -106,7 +137,7 @@ export default function AppUI({
             </div>
           </div>
           <Canvas
-            versions={versions}
+            versions={selectedVersions}
             options={{
               asOfTx,
               asOfValid: asOfValidInput === "" ? undefined : +asOfValidInput,
@@ -230,12 +261,351 @@ export default function AppUI({
               </label>
             </div>
           </details>
+
+          <details className="transform-panel">
+            <summary>Transform（Selection / Aggregation）</summary>
+            <section
+              style={{ borderTop: "1px dashed #445", paddingTop: ".5rem", marginTop: ".5rem" }}
+            >
+              <label style={{ display: "inline-flex", gap: ".5rem", alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={selectionEnabled}
+                  onChange={(e) => setSelectionEnabled(e.target.checked)}
+                />
+                Selection を有効化
+              </label>
+              {selectionEnabled && (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    marginTop: ".5rem",
+                  }}
+                >
+                  <fieldset>
+                    <legend>valid time</legend>
+                    <div className="row">
+                      <label title={intervalTip}>
+                        FROM_Z
+                        <input
+                          type="number"
+                          value={selection.valid?.start ?? ""}
+                          onChange={(e) =>
+                            setSelection((s) => ({
+                              ...s,
+                              valid: {
+                                ...(s.valid ?? { mode: "overlap", clip: true }),
+                                start: e.target.value === "" ? undefined : +e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </label>
+                      <label title={intervalTip}>
+                        TO_Z
+                        <input
+                          type="number"
+                          value={selection.valid?.end ?? ""}
+                          onChange={(e) =>
+                            setSelection((s) => ({
+                              ...s,
+                              valid: {
+                                ...(s.valid ?? { mode: "overlap", clip: true }),
+                                end: e.target.value === "" ? undefined : +e.target.value,
+                              },
+                            }))
+                          }
+                          placeholder="∞"
+                        />
+                      </label>
+                    </div>
+                    <div className="row" style={{ alignItems: "center", gap: ".75rem" }}>
+                      <label>
+                        <input
+                          type="radio"
+                          checked={(selection.valid?.mode ?? "overlap") === "overlap"}
+                          onChange={() =>
+                            setSelection((s) => ({
+                              ...s,
+                              valid: { ...(s.valid ?? { clip: true }), mode: "overlap" },
+                            }))
+                          }
+                        />{" "}
+                        overlap
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          checked={(selection.valid?.mode ?? "overlap") === "contain"}
+                          onChange={() =>
+                            setSelection((s) => ({
+                              ...s,
+                              valid: { ...(s.valid ?? { clip: true }), mode: "contain" },
+                            }))
+                          }
+                        />{" "}
+                        contain
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selection.valid?.clip ?? true}
+                          onChange={(e) =>
+                            setSelection((s) => ({
+                              ...s,
+                              valid: {
+                                ...(s.valid ?? { mode: "overlap" }),
+                                clip: e.target.checked,
+                              },
+                            }))
+                          }
+                        />{" "}
+                        clip
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset>
+                    <legend>transaction time</legend>
+                    <div className="row">
+                      <label title={intervalTip}>
+                        IN_Z
+                        <input
+                          type="number"
+                          value={selection.system?.start ?? ""}
+                          onChange={(e) =>
+                            setSelection((s) => ({
+                              ...s,
+                              system: {
+                                ...(s.system ?? { mode: "overlap", clip: false }),
+                                start: e.target.value === "" ? undefined : +e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </label>
+                      <label title={intervalTip}>
+                        OUT_Z
+                        <input
+                          type="number"
+                          value={selection.system?.end ?? ""}
+                          onChange={(e) =>
+                            setSelection((s) => ({
+                              ...s,
+                              system: {
+                                ...(s.system ?? { mode: "overlap", clip: false }),
+                                end: e.target.value === "" ? undefined : +e.target.value,
+                              },
+                            }))
+                          }
+                          placeholder="∞"
+                        />
+                      </label>
+                    </div>
+                    <div className="row" style={{ alignItems: "center", gap: ".75rem" }}>
+                      <label>
+                        <input
+                          type="radio"
+                          checked={(selection.system?.mode ?? "overlap") === "overlap"}
+                          onChange={() =>
+                            setSelection((s) => ({
+                              ...s,
+                              system: { ...(s.system ?? { clip: false }), mode: "overlap" },
+                            }))
+                          }
+                        />{" "}
+                        overlap
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          checked={(selection.system?.mode ?? "overlap") === "contain"}
+                          onChange={() =>
+                            setSelection((s) => ({
+                              ...s,
+                              system: { ...(s.system ?? { clip: false }), mode: "contain" },
+                            }))
+                          }
+                        />{" "}
+                        contain
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selection.system?.clip ?? false}
+                          onChange={(e) =>
+                            setSelection((s) => ({
+                              ...s,
+                              system: {
+                                ...(s.system ?? { mode: "overlap" }),
+                                clip: e.target.checked,
+                              },
+                            }))
+                          }
+                        />{" "}
+                        clip
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div style={{ gridColumn: "1 / -1" }} className="row">
+                    <label>
+                      value filter
+                      <select
+                        value={selection.value?.kind ?? "contains"}
+                        onChange={(e) =>
+                          setSelection((s) => ({
+                            ...s,
+                            value: {
+                              kind: e.target.value as ValueSpec["kind"],
+                              pattern: s.value?.pattern ?? "",
+                            },
+                          }))
+                        }
+                      >
+                        <option value="contains">contains</option>
+                        <option value="equals">equals</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="pattern"
+                        value={selection.value?.pattern ?? ""}
+                        onChange={(e) =>
+                          setSelection((s) => ({
+                            ...s,
+                            value: {
+                              kind: (s.value?.kind ?? "contains") as ValueSpec["kind"],
+                              pattern: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setSelection({ valid: { mode: "overlap", clip: true } })}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section
+              style={{ borderTop: "1px dashed #445", paddingTop: ".5rem", marginTop: ".75rem" }}
+            >
+              <label style={{ display: "inline-flex", gap: ".5rem", alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={aggEnabled}
+                  onChange={(e) => setAggEnabled(e.target.checked)}
+                />
+                Aggregation を有効化
+              </label>
+              {aggEnabled && (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    marginTop: ".5rem",
+                  }}
+                >
+                  <div className="row" style={{ alignItems: "center", gap: ".75rem" }}>
+                    <label>
+                      axis
+                      <select
+                        value={agg.axis}
+                        onChange={(e) =>
+                          setAgg((a) => ({ ...a, axis: e.target.value as AggregationSpec["axis"] }))
+                        }
+                      >
+                        <option value="valid">business time</option>
+                        <option value="system">system time</option>
+                      </select>
+                    </label>
+                    <label>
+                      bin width
+                      <input
+                        type="number"
+                        min={1}
+                        step={1}
+                        value={agg.binWidth}
+                        onChange={(e) =>
+                          setAgg((a) => ({ ...a, binWidth: Math.max(1, +e.target.value || 1) }))
+                        }
+                      />
+                    </label>
+                    <label>
+                      align
+                      <select
+                        value={agg.align}
+                        onChange={(e) =>
+                          setAgg((a) => ({
+                            ...a,
+                            align: e.target.value as AggregationSpec["align"],
+                          }))
+                        }
+                      >
+                        <option value="zero">zero</option>
+                        <option value="min">min</option>
+                      </select>
+                    </label>
+                    <label>
+                      func
+                      <select
+                        value={agg.func}
+                        onChange={(e) =>
+                          setAgg((a) => ({ ...a, func: e.target.value as AggregationSpec["func"] }))
+                        }
+                      >
+                        <option value="last">last</option>
+                        <option value="count">count</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <AggregationTable rows={aggregated} />
+                  </div>
+                </div>
+              )}
+            </section>
+          </details>
         </section>
       </main>
 
       <footer className="app-footer">
         <small>Next.js (app router). 半開区間 [start, end) / txは整数軸。</small>
       </footer>
+    </div>
+  );
+}
+
+function AggregationTable({ rows }: { rows: ReturnType<typeof aggregateByTime> }) {
+  if (!rows?.length) return <div style={{ opacity: 0.7 }}>— aggregation result —</div>;
+  return (
+    <div style={{ maxHeight: 200, overflow: "auto" }}>
+      <table className="agg-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "left", borderBottom: "1px solid #334" }}>t0</th>
+            <th style={{ textAlign: "left", borderBottom: "1px solid #334" }}>t1</th>
+            <th style={{ textAlign: "left", borderBottom: "1px solid #334" }}>value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>{r.t0}</td>
+              <td>{r.t1}</td>
+              <td>{r.value ?? "∅"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
