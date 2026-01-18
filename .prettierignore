@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.next/
+yarn.lock
+package-lock.json
+doc/
+*.png
+*.jpg
+*.jpeg
+*.gif
+

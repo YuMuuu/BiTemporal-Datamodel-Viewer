@@ -1,7 +1,6 @@
-import '../app/globals.css';
+import "../app/globals.css";
 
 export const parameters = {
-  layout: 'fullscreen',
+  layout: "fullscreen",
   controls: { expanded: true },
 };
-

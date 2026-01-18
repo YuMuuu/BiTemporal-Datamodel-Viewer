@@ -1,6 +1,5 @@
-import AppUI from './components/AppUI'
+import AppUI from "./components/AppUI";
 
-export default function Page(){
-  return <AppUI />
+export default function Page() {
+  return <AppUI />;
 }
-
