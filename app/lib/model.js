@@ -74,7 +74,7 @@ export function computeVersions(ops) {
         value: op.value,
         createdBy: op.id,
       });
-    } else if (op.type === 'delete') {
+    } else if (op.type === 'delete' || op.type === 'close' || op.type === 'invalidate') {
       // deletion: nothing to add = remove overlapped area
     }
 

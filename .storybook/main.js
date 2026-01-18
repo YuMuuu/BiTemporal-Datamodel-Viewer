@@ -13,7 +13,7 @@ module.exports = {
     autodocs: 'tag',
   },
   webpackFinal: async (config) => {
-    // Ensure .jsx in app/ stories are transpiled
+    // Transpile JSX in .stories.jsx under app/
     config.module.rules.push({
       test: /\.jsx?$/,
       exclude: /node_modules/,

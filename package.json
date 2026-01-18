@@ -15,10 +15,10 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@storybook/addon-essentials": "^8.6.15",
     "@babel/core": "^7.26.0",
     "@babel/preset-react": "^7.26.3",
     "babel-loader": "^9.2.1",
-    "@storybook/addon-essentials": "^8.6.15",
     "@storybook/react-webpack5": "^8.6.15",
     "storybook": "^8.6.15"
   }

@@ -80,7 +80,10 @@ export default function AppUI({
             {ops.map((op, idx) => (
               <li key={op.id} className={idx < (replayCount || ops.length) ? '' : 'inactive'}>
                 <span className="badge">{op.id}</span>
-                <span>{op.type} tx={op.tx} valid=[{op.vs},{Number.isFinite(op.ve) ? op.ve : '∞'}) value={op.value ?? '∅'}</span>
+                <span>
+                  {op.type} tx={op.tx} valid=[{op.vs},{Number.isFinite(op.ve) ? op.ve : '∞'})
+                  {op.type === 'upsert' ? ` value=${op.value ?? ''}` : ''}
+                </span>
                 <button title="削除" onClick={()=>remove(op.id)}>×</button>
               </li>
             ))}
@@ -119,7 +122,7 @@ function loadSample(add, setReplayCount){
   const samples = [
     { type: 'upsert', tx: 0, vs: 0, ve: 8, value: 'A' },
     { type: 'upsert', tx: 2, vs: 2, ve: 7, value: 'B' },
-    { type: 'delete', tx: 3, vs: 4, ve: 5 },
+    { type: 'close',  tx: 3, vs: 4, ve: 5 },
     { type: 'upsert', tx: 5, vs: 1, ve: 9, value: 'C' },
   ]
   samples.forEach(add)
@@ -155,7 +158,7 @@ function OpForm({ onAdd }){
         <label>Type
           <select value={type} onChange={e=>setType(e.target.value)}>
             <option value="upsert">upsert</option>
-            <option value="delete">delete</option>
+            <option value="close">close (set OUT_Z=tx)</option>
           </select>
         </label>
         <label>tx
