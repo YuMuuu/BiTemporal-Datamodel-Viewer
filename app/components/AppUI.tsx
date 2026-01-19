@@ -101,7 +101,7 @@ export default function AppUI({
   );
 
   return (
-    <div>
+    <div className="app-root">
       <header className="app-header">
         <h1>BiTemporal Datemodel Viewer</h1>
         <div className="header-actions">

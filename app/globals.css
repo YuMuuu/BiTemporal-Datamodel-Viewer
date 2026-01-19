@@ -20,13 +20,25 @@ body {
   color: var(--text);
   background: radial-gradient(1200px 600px at 10% -10%, #16202d, var(--bg));
   font:
-    14px/1.4 system-ui,
+    13.5px/1.4 system-ui,
     -apple-system,
     Segoe UI,
     Roboto,
     Noto Sans JP,
     Helvetica,
     Arial;
+}
+html,
+body {
+  overflow: hidden;
+}
+
+/* Root layout: header / main / footer as rows */
+.app-root {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
 }
 
 .app-header,
@@ -45,12 +57,12 @@ body {
   opacity: 0.8;
 }
 .app-header h1 {
-  font-size: 18px;
+  font-size: 17px;
   margin: 0;
 }
 .header-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   align-items: center;
 }
 button,
@@ -69,9 +81,13 @@ button:hover {
 
 .app-main {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 1rem;
-  padding: 1rem;
+  grid-template-columns: minmax(520px, 1fr) minmax(280px, 340px);
+  gap: 0.85rem;
+  padding: 0.85rem;
+  align-items: stretch; /* make left column fill height */
+  height: 100%;
+  min-height: 0; /* allow inner items to shrink within viewport */
+  overflow: hidden; /* prevent page scroll; rely on inner scrollables */
 }
 .canvas-panel {
   position: relative;
@@ -79,6 +95,8 @@ button:hover {
   border: 1px solid #1f2937;
   border-radius: 8px;
   overflow: hidden;
+  height: 100%;
+  min-height: 0;
 }
 .controls-panel {
   background: var(--panel);
@@ -88,13 +106,88 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: calc(100vh - 160px);
-  overflow: auto;
   min-width: 0;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow-y: auto; /* internal scrolling only */
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  align-self: stretch;
 }
 .controls-panel h2 {
-  margin: 0 0 0.5rem;
-  font-size: 16px;
+  margin: 0 0 0.48rem;
+  font-size: 15.5px;
+}
+/* rows inside the right panel */
+.controls-panel .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.controls-panel .row > label {
+  flex: 1 1 120px;
+}
+.controls-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 12px;
+  min-width: 0;
+}
+.controls-panel input[type="number"],
+.controls-panel input[type="text"],
+.controls-panel select {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* fieldsets in transform panel */
+.controls-panel fieldset {
+  border: 1px solid #243043;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem 0.75rem;
+  min-width: 0;
+}
+.controls-panel legend {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0 0.25rem;
+}
+
+/* aggregation table */
+.agg-table {
+  table-layout: fixed;
+}
+.agg-table td,
+.agg-table th {
+  padding: 0.25rem 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px) {
+  .app-main {
+    grid-template-columns: 1fr minmax(240px, 300px);
+    gap: 0.6rem;
+    padding: 0.6rem;
+  }
+  .canvas-panel {
+    height: clamp(320px, 58vh, 70vh);
+    aspect-ratio: 4/3;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+  .controls-panel {
+    max-height: none;
+  }
 }
 /* rows inside the right panel */
 .controls-panel .row {
@@ -176,13 +269,13 @@ svg {
   padding-left: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 .ops-list li {
   list-style-position: outside;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 .ops-list li.inactive {
   opacity: 0.35;
@@ -195,7 +288,7 @@ svg {
   background: #213047;
   border: 1px solid #2d415c;
   text-align: center;
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1.2rem;
 }
 .ops-list li .meta {
@@ -207,12 +300,12 @@ svg {
 .view-options summary,
 .transform-panel summary {
   cursor: pointer;
-  margin-top: 0.75rem;
+  margin-top: 0.68rem;
 }
 .op-form form .row {
   display: flex;
   gap: 0.5rem;
-  margin: 0.4rem 0;
+  margin: 0.35rem 0;
 }
 .op-form label {
   display: flex;
@@ -230,4 +323,22 @@ svg {
 .hint {
   fill: var(--muted);
   font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .app-main {
+    grid-template-columns: 1fr minmax(260px, 320px);
+    gap: 0.8rem;
+    padding: 0.8rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+  .controls-panel {
+    position: static;
+    max-height: none;
+  }
 }
