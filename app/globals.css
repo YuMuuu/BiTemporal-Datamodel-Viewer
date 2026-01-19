@@ -85,10 +85,64 @@ button:hover {
   border: 1px solid #1f2937;
   border-radius: 8px;
   padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  min-width: 0;
 }
 .controls-panel h2 {
   margin: 0 0 0.5rem;
   font-size: 16px;
+}
+/* rows inside the right panel */
+.controls-panel .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.controls-panel .row > label {
+  flex: 1 1 120px;
+}
+.controls-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 12px;
+  min-width: 0;
+}
+.controls-panel input[type="number"],
+.controls-panel input[type="text"],
+.controls-panel select {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* fieldsets in transform panel */
+.controls-panel fieldset {
+  border: 1px solid #243043;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem 0.75rem;
+  min-width: 0;
+}
+.controls-panel legend {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0 0.25rem;
+}
+
+/* aggregation table */
+.agg-table {
+  table-layout: fixed;
+}
+.agg-table td,
+.agg-table th {
+  padding: 0.25rem 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .axes-labels .label-y {
@@ -150,7 +204,8 @@ svg {
 }
 
 .op-form summary,
-.view-options summary {
+.view-options summary,
+.transform-panel summary {
   cursor: pointer;
   margin-top: 0.75rem;
 }

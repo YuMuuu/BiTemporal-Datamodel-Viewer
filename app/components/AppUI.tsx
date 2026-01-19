@@ -279,7 +279,7 @@ export default function AppUI({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
+                    gridTemplateColumns: "1fr",
                     gap: "1rem",
                     marginTop: ".5rem",
                   }}
@@ -509,7 +509,7 @@ export default function AppUI({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
+                    gridTemplateColumns: "1fr",
                     gap: "1rem",
                     marginTop: ".5rem",
                   }}
